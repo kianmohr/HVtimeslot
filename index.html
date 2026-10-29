@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Higher Vision Open Decks — Now Playing</title>
+<meta name="theme-color" content="#14111c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* TV/venue screen: landscape, viewed from a distance, no interaction, auto-refreshing. */
+:root {
+  --ink: #14111c;
+  --panel: #1e1929;
+  --line: #362d4a;
+  --fg: #f4efe7;
+  --muted: #a69db9;
+  --uv: #b69cff;
+  --heat: #ff8a3d;
+  --display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  color: var(--fg); font: 16px/1.4 var(--body);
+  -webkit-text-size-adjust: 100%;
+}
+/* Same blurred crowd photo as the sign-on page, fixed behind the content and tinted for contrast. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: linear-gradient(rgba(20, 17, 28, 0.55), rgba(20, 17, 28, 0.8)), url("bg.webp") center / cover no-repeat, var(--ink);
+  transform: scale(1.06);
+}
+.wrap {
+  height: 100vh; padding: 3.2vh 3.6vw; display: grid;
+  grid-template-rows: auto 1fr auto; gap: 2.6vh;
+}
+
+/* Header */
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 2vw; }
+.brand { display: grid; gap: 0.6vh; justify-items: start; }
+.brand img { display: block; height: auto; }
+.brand .logo { width: clamp(120px, 13vw, 210px); }
+.brand .logo-od { width: clamp(160px, 19vw, 300px); }
+.meta { text-align: right; display: grid; gap: 6px; justify-items: end; }
+.when { font-family: var(--mono); color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.3rem); }
+.clock { font-family: var(--mono); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.4rem); font-variant-numeric: tabular-nums; }
+.demo {
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 5;
+  border: 1px dashed var(--line); background: var(--ink); border-radius: 10px;
+  padding: 6px 14px; font-size: 0.85rem; color: var(--muted);
+}
+
+/* Stage: now playing + up next */
+.stage { display: grid; grid-template-columns: 1.7fr 1fr; gap: 3vw; min-height: 0; }
+.card {
+  border-radius: 24px; border: 1px solid var(--line); background: var(--panel);
+  padding: clamp(20px, 3vh, 44px) clamp(24px, 3.4vw, 48px);
+  display: grid; align-content: center; gap: clamp(10px, 1.6vh, 18px); min-height: 0; position: relative; overflow: hidden;
+}
+.card.now { border-color: var(--uv); box-shadow: 0 0 0 1px rgba(182,156,255,0.25), 0 40px 80px -30px rgba(182,156,255,0.25); }
+.card.now::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; opacity: 0.5;
+  background: radial-gradient(circle at 100% 0%, rgba(182,156,255,0.16), transparent 60%);
+}
+.card > * { position: relative; z-index: 1; }
+.label { font-family: var(--mono); font-size: clamp(0.85rem, 1.3vw, 1.1rem); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.card.now .label { color: var(--uv); }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--uv); box-shadow: 0 0 0 0 rgba(182,156,255,0.6); animation: pulse 1.8s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(182,156,255,0.55); } 70% { box-shadow: 0 0 0 14px rgba(182,156,255,0); } 100% { box-shadow: 0 0 0 0 rgba(182,156,255,0); } }
+.dj { font-family: var(--display); font-weight: 800; line-height: 0.98; overflow-wrap: anywhere; }
+.card.now .dj { font-size: clamp(2.6rem, 6.6vw, 6.2rem); }
+.card.next .dj { font-size: clamp(1.8rem, 3.6vw, 3.4rem); }
+.row { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; color: var(--muted); font-size: clamp(1rem, 1.7vw, 1.4rem); }
+.row .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); font-weight: 600; }
+.row .tag { background: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; }
+.bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--uv), var(--heat)); border-radius: 4px; }
+.placeholder { font-family: var(--display); font-weight: 700; font-size: clamp(1.4rem, 2.6vw, 2.2rem); color: var(--muted); }
+
+/* Upcoming strip */
+.upcoming { min-height: 0; display: grid; gap: 1.4vh; align-content: start; }
+.upcoming h2 { margin: 0; font-family: var(--mono); font-size: clamp(0.85rem, 1.3vw, 1.1rem); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+ol.list { list-style: none; margin: 0; padding: 0; display: flex; gap: 1.2vw; flex-wrap: wrap; }
+ol.list li {
+  flex: 1 1 clamp(180px, 15vw, 260px);
+  border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: grid; gap: 4px;
+  background: rgba(30,25,41,0.6);
+}
+ol.list .t { font-family: var(--mono); font-weight: 700; color: var(--muted); font-size: clamp(0.8rem, 1.1vw, 1rem); }
+ol.list .n { font-family: var(--display); font-weight: 800; font-size: clamp(1.1rem, 1.6vw, 1.5rem); overflow-wrap: anywhere; }
+ol.list .g { color: var(--muted); font-size: clamp(0.8rem, 1.1vw, 1rem); }
+.empty-upcoming { color: var(--muted); font-size: clamp(0.9rem, 1.3vw, 1.1rem); }
+
+.full { display: grid; align-content: center; justify-content: center; text-align: center; gap: 14px; height: 100%; }
+.full h1 { font-family: var(--display); font-weight: 800; font-size: clamp(2.4rem, 5vw, 4rem); margin: 0; }
+.full p { color: var(--muted); font-size: clamp(1rem, 1.8vw, 1.4rem); margin: 0; }
+
+/* Scan-to-sign-on QR, always visible regardless of what the stage is showing */
+.qr-card {
+  position: fixed; right: 2.4vw; bottom: 2.6vh; z-index: 10;
+  background: #fff; border-radius: 16px; padding: clamp(8px, 0.9vw, 14px);
+  box-shadow: 0 20px 50px -20px rgba(0,0,0,0.6);
+  width: clamp(130px, 10.5vw, 200px);
+}
+.qr-card img { display: block; width: 100%; height: auto; border-radius: 6px; }
+</style>
+</head>
+<body>
+<p class="demo" id="demo" hidden><b>Preview mode.</b> Sample DJs — add the Apps Script URL to config.js to go live.</p>
+
+<div class="wrap" id="app">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="logo.webp" alt="Higher Vision" width="604" height="297">
+      <img class="logo-od" src="open-decks.webp" alt="Open Decks" width="1000" height="436">
+    </div>
+    <div class="meta">
+      <div class="when" id="when">Loading the night…</div>
+      <div class="clock" id="clock"></div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage" hidden>
+    <section class="card now" id="nowCard"></section>
+    <section class="card next" id="nextCard"></section>
+  </main>
+
+  <section class="full" id="fullMsg" hidden></section>
+
+  <footer class="upcoming" id="upcomingWrap" hidden>
+    <h2>Later tonight</h2>
+    <ol class="list" id="upcomingList"></ol>
+  </footer>
+</div>
+
+<div class="qr-card"><img src="qr-sign-on.png" alt="Scan to sign on"></div>
+
+<script src="config.js"></script>
+<script>
+(() => {
+  const API = ((window.HV_CONFIG || {}).apiUrl || '').trim();
+  const DEMO = !API;
+  const $ = id => document.getElementById(id);
+  let state = null;
+
+  /* ---------- Preview data (only when config.js has no URL) ---------- */
+  const demo = {
+    ok: true,
+    event: { name: 'Higher Vision Open Decks', date: '', start: '9:00pm', end: '12:00am', open: true },
+    setLength: 30,
+    lineup: [
+      { id: 'd0', djName: 'DJ Lowtide', genre: 'Deep House', bpm: 120, start: '9:00pm', end: '9:30pm' },
+      { id: 'd1', djName: 'DJ Marisol', genre: 'Amapiano', bpm: 112, start: '9:30pm', end: '10:00pm' },
+      { id: 'd2', djName: 'DJ Kestrel', genre: 'Techno', bpm: 135, start: '10:00pm', end: '10:30pm' },
+      { id: 'd3', djName: 'DJ Fable', genre: 'House', bpm: 124, start: '10:30pm', end: '11:00pm' },
+      { id: 'd4', djName: 'DJ Okra', genre: 'Hip-Hop / R&B', bpm: 90, start: '11:00pm', end: '11:30pm' },
+    ],
+    waitlist: [],
+  };
+
+  /* ---------- Talking to the Apps Script sheet (same API the sign-on page uses) ---------- */
+  async function load() {
+    try {
+      const next = DEMO ? demo : await fetch(API, { cache: 'no-store' }).then(r => r.json());
+      if (!next.ok) throw new Error(next.error || 'The lineup could not load.');
+      state = next;
+      render();
+    } catch (err) {
+      if (!state) $('when').textContent = "The lineup couldn't load. Retrying…";
+    }
+  }
+
+  /* ---------- Time helpers: figure out who's on now from start/end strings like "9:30pm" ---------- */
+  function parseTime(s) {
+    const m = /^(\d{1,2}):(\d{2})(am|pm)$/i.exec(String(s).trim());
+    if (!m) return null;
+    let h = parseInt(m[1], 10) % 12;
+    if (m[3].toLowerCase() === 'pm') h += 12;
+    return h * 60 + parseInt(m[2], 10);
+  }
+  // A slot's clock time (e.g. "9:30pm") could mean today, yesterday, or tomorrow — pick whichever
+  // real calendar occurrence is closest to right now.
+  function nearestOccurrence(minutesOfDay, now) {
+    const base = new Date(now); base.setHours(0, 0, 0, 0); base.setMinutes(minutesOfDay);
+    let best = base;
+    for (const offset of [-1, 1]) {
+      const cand = new Date(base); cand.setDate(cand.getDate() + offset);
+      if (Math.abs(cand - now) < Math.abs(best - now)) best = cand;
+    }
+    return best;
+  }
+
+  function schedule() {
+    const now = new Date();
+    const slots = state.lineup.map(d => {
+      const startDate = nearestOccurrence(parseTime(d.start), now);
+      const endDate = new Date(startDate); endDate.setHours(0, 0, 0, 0); endDate.setMinutes(parseTime(d.end));
+      if (endDate <= startDate) endDate.setDate(endDate.getDate() + 1);
+      return { d, startDate, endDate };
+    });
+    const current = slots.find(s => s.startDate <= now && now < s.endDate) || null;
+    const future = slots.filter(s => s.startDate > now).sort((a, b) => a.startDate - b.startDate);
+    return { current, next: future[0] || null, upcoming: future.slice(1), now };
+  }
+
+  /* ---------- Rendering ---------- */
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function metaRow(d) {
+    const r = el('div', 'row');
+    r.append(el('span', 'tag', d.genre), el('span', 'mono', d.bpm + ' bpm'));
+    return r;
+  }
+  function fmtClock(mins) {
+    mins = Math.round(mins);
+    const h = Math.floor(mins / 60), m = mins % 60;
+    if (h <= 0) return m + ' min';
+    return h + 'h ' + m + 'm';
+  }
+
+  function render() {
+    const e = state.event;
+    document.title = e.name + ' — Now Playing';
+    $('when').textContent = [e.date, e.start + ' – ' + e.end].filter(Boolean).join(' · ');
+
+    const total = state.lineup.length + state.waitlist.length;
+    $('stage').hidden = true; $('fullMsg').hidden = true; $('upcomingWrap').hidden = true;
+
+    if (!total) {
+      showFull('No DJs signed on yet', 'Sign up on your phone to take the first slot.');
+      return;
+    }
+    if (!e.open && !state.lineup.length) {
+      showFull('Sign-ups closed, no lineup yet', 'Find the host.');
+      return;
+    }
+
+    const { current, next, upcoming, now } = schedule();
+
+    if (!current && !next) {
+      showFull("That's the night!", 'Thanks for playing — see you next time.');
+      renderUpcomingList([]); // keep hidden
+      return;
+    }
+
+    $('stage').hidden = false;
+    renderNow(current, now);
+    renderNext(next, !current, now);
+    renderUpcomingList(upcoming);
+  }
+
+  function showFull(title, sub) {
+    $('fullMsg').hidden = false;
+    $('fullMsg').replaceChildren(el('h1', null, title), el('p', null, sub));
+  }
+
+  function renderNow(current, now) {
+    const card = $('nowCard');
+    if (!current) {
+      card.replaceChildren(
+        el('div', 'label', 'Now playing'),
+        el('div', 'placeholder', 'Starting soon'),
+      );
+      return;
+    }
+    const { d, startDate, endDate } = current;
+    const label = el('div', 'label');
+    label.append(el('span', 'dot'), document.createTextNode('Now playing'));
+    const bar = el('div', 'bar');
+    const fillPct = Math.min(100, Math.max(0, Math.round(((now - startDate) / (endDate - startDate)) * 100)));
+    const fill = el('span'); fill.style.width = fillPct + '%';
+    bar.appendChild(fill);
+    const timing = el('div', 'row');
+    timing.append(el('span', 'mono', d.start + ' – ' + d.end), el('span', null, 'Ends in ' + fmtClock((endDate - now) / 60000)));
+    card.replaceChildren(label, el('div', 'dj', d.djName), metaRow(d), bar, timing);
+  }
+
+  function renderNext(next, big, now) {
+    const card = $('nextCard');
+    card.classList.toggle('now', big);
+    card.classList.toggle('next', !big);
+    if (!next) {
+      card.replaceChildren(el('div', 'label', 'Up next'), el('div', 'placeholder', '—'));
+      return;
+    }
+    const { d, startDate } = next;
+    const timing = el('div', 'row');
+    timing.append(el('span', 'mono', 'Starts ' + d.start), el('span', null, 'in ' + fmtClock((startDate - now) / 60000)));
+    card.replaceChildren(el('div', 'label', 'Up next'), el('div', 'dj', d.djName), metaRow(d), timing);
+  }
+
+  function renderUpcomingList(upcoming) {
+    const wrap = $('upcomingWrap');
+    if (!upcoming.length) { wrap.hidden = true; return; }
+    wrap.hidden = false;
+    $('upcomingList').replaceChildren(...upcoming.map(s => {
+      const li = el('li');
+      li.append(el('div', 't', s.d.start), el('div', 'n', s.d.djName), el('div', 'g', s.d.genre));
+      return li;
+    }));
+  }
+
+  $('demo').hidden = !DEMO;
+  load();
+  setInterval(() => { if (!document.hidden) load(); }, 15000);
+
+  function tick() {
+    $('clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+    if (state) render();
+  }
+  setInterval(tick, 1000);
+  tick();
+})();
+</script>
+</body>
+</html>
